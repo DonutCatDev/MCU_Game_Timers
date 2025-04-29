@@ -891,7 +891,7 @@ class GameMode:
         name,
         has_lives=False,
         has_id=False,
-        has_team=False,
+        has_team=False,s
         has_game_length=False,
         has_cap_length=False,
         has_checkpoint=False,
@@ -919,33 +919,37 @@ class GameMode:
             6: f"{self.name}\nReady w TimerBox",
         }
         message = 2
-        if self.has_lives:
-            message = 1
-        elif self.has_id:
-            message = 5
-        elif self.has_team:
-            if self.has_game_length:
+        match self:
+            case _ if self.has_lives:
+                message = 1
+            case _ if self.has_id:
+                message = 5
+            case _ if self.has_team and self.has_game_length:
                 message = 3
-            else:
+            case _ if self.has_team:
                 message = 4
-        elif self.has_game_length:
-            message = 2
-        elif self.has_timerbox:
-            message = 6
+            case _ if self.has_game_length:
+                message = 2
+            case _ if self.has_timerbox:
+                message = 6
+            case _:
+                raise ValueError("No matching case found")
         return self.display_messages[message]
 
     async def game_setup(self):
-        if self.has_lives:
-            await self.counter_screen()
-        if self.has_id:
-            await self.identity_screen()
-        if self.has_team:
-            await self.team_screen()
-        if self.has_game_length:
-            await self.timer_screen()
-        if self.has_timerbox:
-            await self.tbcheck_screen()
-        await self.standby_screen()
+        match self:
+            case _ if self.has_lives:
+                await self.counter_screen()
+            case _ if self.has_id:
+                await self.identity_screen()
+            case _ if self.has_team:
+                await self.team_screen()
+            case _ if self.has_game_length:
+                await self.timer_screen()
+            case _ if self.has_timerbox:
+                await self.tbcheck_screen()
+            case _:
+                await self.standby_screen()
 
     async def counter_screen(self):
         """Screen used to set lives for Attrition"""
