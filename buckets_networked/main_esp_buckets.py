@@ -7,6 +7,7 @@ from binascii import unhexlify
 from os import getenv
 from time import monotonic
 from asyncio import sleep, create_task, gather, run, Event
+from adafruit_debouncer import Button
 from gc import enable, mem_free  # type: ignore
 from random import randint
 from hardware import (
@@ -17,7 +18,9 @@ from hardware import (
     RED_LED,
     BLUE_LED,
     ENCB,
+    RED,
     REDB,
+    BLUE,
     BLUEB,
 )
 
@@ -80,6 +83,7 @@ class Game_States:
         self.game_length = 0
         self.cap_length = 0
         self.checkpoint = 1
+        self.long_ms = 1000
         self.dd_loop = 2
         self.timer_state = True
         self.cap_state = False
@@ -168,6 +172,7 @@ class Game_States:
         self.game_length = 0
         self.cap_length = 0
         self.checkpoint = 1
+        self.long_ms = 1000
         self.dd_loop = 2
         self.timer_state = True
         self.cap_state = False
@@ -836,6 +841,8 @@ async def start_lockout(game_mode):
 async def start_territory(game_mode):
     """Function for Territories(b) game mode"""
     local_state = initial_state.shallow_copy()
+    REDB = Button(RED, long_duration_ms=local_state.long_ms)
+    BLUEB = Button(BLUE, long_duration_ms=local_state.long_ms)
     await sleep(0.5)
     display_message(f"{local_state.team} Team\n{local_state.game_length_str}")
     local_state.update_team()
@@ -897,6 +904,7 @@ class GameMode:
         has_checkpoint=False,
         has_loop=False,
         has_timerbox=False,
+        has_longpress=False,
     ):
         self.name = name
         self.has_lives = has_lives
@@ -907,6 +915,7 @@ class GameMode:
         self.has_checkpoint = has_checkpoint
         self.has_loop = has_loop
         self.has_timerbox = has_timerbox
+        self.has_longpress = has_longpress
         self.final_func_str = f"start_{self.name.replace(' ', '').lower()}"
 
     def set_message(self):
