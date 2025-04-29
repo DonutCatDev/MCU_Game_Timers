@@ -842,16 +842,18 @@ async def start_territory(game_mode):
     clock = monotonic()
     while local_state.game_length > 0:
         if local_state.timer_state:
-            if REDB.long_press:
-                local_state.update_team(team="Red", delay=0.0025)
-                display_message(
-                    f"{local_state.team} Team \n{local_state.game_length_str}"
-                )
-            elif BLUEB.long_press:
-                local_state.update_team(team="Blue", delay=0.0025)
-                display_message(
-                    f"{local_state.team} Team \n{local_state.game_length_str}"
-                )
+            match (REDB.long_press, BLUEB.long_press, local_state.team):
+                case (True, False, "Blue"):
+                    local_state.update_team(team="Green", delay=0.0025)
+                case (True, False, "Green"):
+                    local_state.update_team(team="Red", delay=0.0025)
+                case (False, True, "Red"):
+                    local_state.update_team(team="Green", delay=0.0025)
+                case (False, True, "Green"):
+                    local_state.update_team(team="Blue", delay=0.0025)
+                case _:
+                    # Always update the display message after a match
+                    display_message(f"{local_state.team} Team \n{local_state.game_length_str}")
             if monotonic() - clock >= 1:
                 local_state.game_length -= 1
                 display_message(
