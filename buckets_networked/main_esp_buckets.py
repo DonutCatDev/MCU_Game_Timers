@@ -1113,6 +1113,8 @@ class GameMode:
             await self.team_screen()
         if self.has_game_length:
             await self.timer_screen()
+        if self.has_long_press:
+            await self.long_press_screen()
         if self.has_timerbox:
             await self.tbcheck_screen()
         await self.standby_screen()
@@ -1230,22 +1232,23 @@ class GameMode:
                 if ENCB.short_count > 0:
                     break
                 await sleep(0)
-        if self.has_long_press:
-            display_message(
-                f"{self.name} \nLong press: {int(initial_state.long_ms/1000)}s"
-            )
+        await sleep(0)
+
+    async def long_press_screen(self):
+        await sleep(0.5)
+        display_message(f"{self.name} \nLong press: {int(initial_state.long_ms/1000)}s")
+        await sleep(0)
+        while True:
+            if ENCS._was_rotated.is_set():
+                initial_state.long_ms = max(
+                    1000, ENCS.encoder_handler(initial_state.long_ms, 1000)
+                )
+                display_message(
+                    f"{self.name} \nLong press: {int(initial_state.long_ms/1000)}s"
+                )
+            if ENCB.short_count > 0:
+                break
             await sleep(0)
-            while True:
-                if ENCS._was_rotated.is_set():
-                    initial_state.long_ms = max(
-                        1000, ENCS.encoder_handler(initial_state.long_ms, 1000)
-                    )
-                    display_message(
-                        f"{self.name} \nLong press: {int(initial_state.long_ms/1000)}s"
-                    )
-                if ENCB.short_count > 0:
-                    break
-                await sleep(0)
         await sleep(0)
 
     async def tbcheck_screen(self):
@@ -1338,6 +1341,7 @@ MODES = [
     GameMode("KOTH W", has_timerbox=True),
     GameMode("Lockout", has_game_length=True),
     GameMode("Territory", has_game_length=True, has_long_press=True),
+    GameMode("Territory W", has_timerbox=True, has_long_press=True),
 ]
 # endregion
 """
