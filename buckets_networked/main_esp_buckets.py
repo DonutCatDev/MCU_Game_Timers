@@ -7,7 +7,6 @@ from binascii import unhexlify
 from os import getenv
 from time import monotonic
 from asyncio import sleep, create_task, gather, run, Event
-from adafruit_debouncer import Button
 from gc import enable, mem_free  # type: ignore
 from random import randint
 from hardware import (
@@ -18,9 +17,7 @@ from hardware import (
     RED_LED,
     BLUE_LED,
     ENCB,
-    RED,
     REDB,
-    BLUE,
     BLUEB,
 )
 
@@ -67,6 +64,8 @@ class Game_States:
         game_length (int): The duration of the game in seconds.
         cap_length (int): The capture point length in seconds.
         checkpoint (int): The checkpoint value.
+        long_ms (int): The long press duration in milliseconds.
+        dd_loop (int): The number of loops for the DoorDash game mode.
         timer_state (bool): The state of the timer (True for running, False for paused).
         cap_state (bool): The state of the capture.
         red_time (int): The remaining time for the red team.
@@ -83,7 +82,7 @@ class Game_States:
         self.game_length = 0
         self.cap_length = 0
         self.checkpoint = 1
-        self.long_ms = 1000
+        self.long_ms = 5000
         self.dd_loop = 2
         self.timer_state = True
         self.cap_state = False
@@ -841,26 +840,45 @@ async def start_lockout(game_mode):
 async def start_territory(game_mode):
     """Function for Territories(b) game mode"""
     local_state = initial_state.shallow_copy()
-    REDB = Button(RED, long_duration_ms=local_state.long_ms)
-    BLUEB = Button(BLUE, long_duration_ms=local_state.long_ms)
     await sleep(0.5)
     display_message(f"{local_state.team} Team\n{local_state.game_length_str}")
     local_state.update_team()
     clock = monotonic()
+    hold_time = 0
     while local_state.game_length > 0:
         if local_state.timer_state:
-            match (REDB.long_press, BLUEB.long_press, local_state.team):
-                case (True, False, "Blue"):
-                    local_state.update_team(team="Green", delay=0.0025)
-                case (True, False, "Green"):
-                    local_state.update_team(team="Red", delay=0.0025)
-                case (False, True, "Red"):
-                    local_state.update_team(team="Green", delay=0.0025)
-                case (False, True, "Green"):
-                    local_state.update_team(team="Blue", delay=0.0025)
-                case _:
-                    # Always update the display message after a match
-                    display_message(f"{local_state.team} Team \n{local_state.game_length_str}")
+            if REDB.fell or BLUEB.fell:
+                hold_time = monotonic()
+                local_state.cap_state = True
+                color = "Red" if REDB.fell else "Blue"
+                RGBS.update(
+                    color1=color,
+                    color2=local_state.team,
+                    pattern="solid_blink",
+                    delay=0.1,
+                    repeat=-1,
+                )
+            if REDB.rose or BLUEB.rose:
+                local_state.cap_state = False
+                local_state.update_team(local_state.team)
+            if (
+                local_state.cap_state == True
+                and monotonic() - hold_time >= local_state.long_ms / 1000
+            ):
+                if not REDB.value:
+                    if local_state.team == "Green":
+                        local_state.update_team(team="Red", delay=0.0025)
+                    elif local_state.team == "Blue":
+                        local_state.update_team(team="Green", delay=0.0025)
+                elif not BLUEB.value:
+                    if local_state.team == "Green":
+                        local_state.update_team(team="Blue", delay=0.0025)
+                    elif local_state.team == "Red":
+                        local_state.update_team(team="Green", delay=0.0025)
+                hold_time = monotonic()
+                display_message(
+                    f"{local_state.team} Team \n{local_state.game_length_str}"
+                )
             if monotonic() - clock >= 1:
                 local_state.game_length -= 1
                 display_message(
@@ -902,9 +920,9 @@ class GameMode:
         has_game_length=False,
         has_cap_length=False,
         has_checkpoint=False,
+        has_long_press=False,
         has_loop=False,
         has_timerbox=False,
-        has_longpress=False,
     ):
         self.name = name
         self.has_lives = has_lives
@@ -913,9 +931,9 @@ class GameMode:
         self.has_game_length = has_game_length
         self.has_cap_length = has_cap_length
         self.has_checkpoint = has_checkpoint
+        self.has_long_press = has_long_press
         self.has_loop = has_loop
         self.has_timerbox = has_timerbox
-        self.has_longpress = has_longpress
         self.final_func_str = f"start_{self.name.replace(' ', '').lower()}"
 
     def set_message(self):
@@ -926,39 +944,39 @@ class GameMode:
             4: f"{self.name}\nReady Team {initial_state.team}",
             5: f"{self.name} Ready\n{initial_state.game_length_str} {initial_state.bucket_id}",
             6: f"{self.name}\nReady w TimerBox",
+            7: f"{self.name}\nReady {initial_state.game_length_str} {int(initial_state.long_ms/1000)}s",
         }
         message = 2
-        match self:
-            case _ if self.has_lives:
-                message = 1
-            case _ if self.has_id:
-                message = 5
-            case _ if self.has_team and self.has_game_length:
+        if self.has_lives:
+            message = 1
+        elif self.has_id:
+            message = 5
+        elif self.has_team:
+            if self.has_game_length:
                 message = 3
-            case _ if self.has_team:
+            else:
                 message = 4
-            case _ if self.has_game_length:
+        elif self.has_game_length:
+            if self.has_long_press:
+                message = 7
+            else:
                 message = 2
-            case _ if self.has_timerbox:
-                message = 6
-            case _:
-                raise ValueError("No matching case found")
+        elif self.has_timerbox:
+            message = 6
         return self.display_messages[message]
 
     async def game_setup(self):
-        match self:
-            case _ if self.has_lives:
-                await self.counter_screen()
-            case _ if self.has_id:
-                await self.identity_screen()
-            case _ if self.has_team:
-                await self.team_screen()
-            case _ if self.has_game_length:
-                await self.timer_screen()
-            case _ if self.has_timerbox:
-                await self.tbcheck_screen()
-            case _:
-                await self.standby_screen()
+        if self.has_lives:
+            await self.counter_screen()
+        if self.has_id:
+            await self.identity_screen()
+        if self.has_team:
+            await self.team_screen()
+        if self.has_game_length:
+            await self.timer_screen()
+        if self.has_timerbox:
+            await self.tbcheck_screen()
+        await self.standby_screen()
 
     async def counter_screen(self):
         """Screen used to set lives for Attrition"""
@@ -1073,6 +1091,22 @@ class GameMode:
                 if ENCB.short_count > 0:
                     break
                 await sleep(0)
+        if self.has_long_press:
+            display_message(
+                f"{self.name} \nLong press: {int(initial_state.long_ms/1000)}s"
+            )
+            await sleep(0)
+            while True:
+                if ENCS._was_rotated.is_set():
+                    initial_state.long_ms = max(
+                        1000, ENCS.encoder_handler(initial_state.long_ms, 1000)
+                    )
+                    display_message(
+                        f"{self.name} \nLong press: {int(initial_state.long_ms/1000)}s"
+                    )
+                if ENCB.short_count > 0:
+                    break
+                await sleep(0)
         await sleep(0)
 
     async def tbcheck_screen(self):
@@ -1164,7 +1198,7 @@ MODES = [
     GameMode("Domination W", has_timerbox=True),
     GameMode("KOTH W", has_timerbox=True),
     GameMode("Lockout", has_game_length=True),
-    GameMode("Territory", has_game_length=True),
+    GameMode("Territory", has_game_length=True, has_long_press=True),
 ]
 # endregion
 """
