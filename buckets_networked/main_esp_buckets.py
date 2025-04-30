@@ -420,9 +420,13 @@ async def start_crazyking(game_mode):
                     local_state.cap_state = False
             if local_state.cap_state:
                 if REDB.fell and local_state.team != "Red":
-                    local_state.update_team(team="Red", delay=0.0025)
+                    local_state.update_team("Red", delay=0.0025)
+                elif REDB.long_press and local_state.team == "Red":
+                    local_state.update_team("Green", delay=0.0025)
                 elif BLUEB.fell and local_state.team != "Blue":
-                    local_state.update_team(team="Blue", delay=0.0025)
+                    local_state.update_team("Blue", delay=0.0025)
+                elif BLUEB.long_press and local_state.team == "Blue":
+                    local_state.update_team("Green", delay=0.0025)
             if monotonic() - clock >= 1:
                 local_state.game_length -= 1
                 if local_state.cap_state:
@@ -498,8 +502,12 @@ async def start_crazykingw(game_mode):
             if local_state.cap_state:
                 if REDB.fell and local_state.team != "Red":
                     local_state.update_team("Red", delay=0.0025)
+                elif REDB.long_press and local_state.team == "Red":
+                    local_state.update_team("Green", delay=0.0025)
                 elif BLUEB.fell and local_state.team != "Blue":
                     local_state.update_team("Blue", delay=0.0025)
+                elif BLUEB.long_press and local_state.team == "Blue":
+                    local_state.update_team("Green", delay=0.0025)
             if monotonic() - clock >= 1:
                 if local_state.cap_state:
                     if local_state.team == "Red":
@@ -575,10 +583,16 @@ async def start_domination(game_mode):
     clock = monotonic()
     while local_state.game_length > 0:
         if local_state.timer_state:
-            if REDB.long_press and local_state.team != "Red":
-                local_state.update_team("Red", delay=0.0025)
-            elif BLUEB.long_press and local_state.team != "Blue":
-                local_state.update_team("Blue", delay=0.0025)
+            if REDB.long_press:
+                if local_state.team != "Red":
+                    local_state.update_team("Red", delay=0.0025)
+                elif local_state.team == "Red":
+                    local_state.update_team("Green", delay=0.0025)
+            elif BLUEB.long_press:
+                if local_state.team != "Blue":
+                    local_state.update_team("Blue", delay=0.0025)
+                elif local_state.team == "Blue":
+                    local_state.update_team("Green", delay=0.0025)
             if monotonic() - clock >= 1:
                 local_state.game_length -= 1
                 if local_state.team == "Red":
@@ -647,10 +661,16 @@ async def start_dominationw(game_mode):
     await sleep(0)
     while True:
         if local_state.timer_state:
-            if REDB.long_press and local_state.team != "Red":
-                local_state.update_team("Red", delay=0.0025)
-            elif BLUEB.long_press and local_state.team != "Blue":
-                local_state.update_team("Blue", delay=0.0025)
+            if REDB.long_press:
+                if local_state.team != "Red":
+                    local_state.update_team("Red", delay=0.0025)
+                elif local_state.team == "Red":
+                    local_state.update_team("Green", delay=0.0025)
+            elif BLUEB.long_press:
+                if local_state.team != "Blue":
+                    local_state.update_team("Blue", delay=0.0025)
+                elif local_state.team == "Blue":
+                    local_state.update_team("Green", delay=0.0025)
             if monotonic() - clock >= 1:
                 if local_state.team == "Red":
                     local_state.red_time += 1
@@ -733,10 +753,16 @@ async def start_kothw(game_mode):
     await sleep(0)
     while True:
         if local_state.timer_state:
-            if REDB.pressed and local_state.team != "Red":
-                local_state.update_team("Red", delay=0.0025)
-            elif BLUEB.pressed and local_state.team != "Blue":
-                local_state.update_team("Blue", delay=0.0025)
+            if REDB.long_press:
+                if local_state.team != "Red":
+                    local_state.update_team("Red", delay=0.0025)
+                elif local_state.team == "Red":
+                    local_state.update_team("Green", delay=0.0025)
+            elif BLUEB.long_press:
+                if local_state.team != "Blue":
+                    local_state.update_team("Blue", delay=0.0025)
+                elif local_state.team == "Blue":
+                    local_state.update_team("Green", delay=0.0025)
             if monotonic() - clock >= 1:
                 if local_state.team == "Red":
                     local_state.red_time += 1
@@ -803,10 +829,16 @@ async def start_lockout(game_mode):
     clock = monotonic()
     while local_state.red_time > 0 and local_state.blue_time > 0:
         if local_state.timer_state:
-            if REDB.long_press and local_state.team != "Red":
-                local_state.update_team(team="Red", delay=0.0025)
-            elif BLUEB.long_press and local_state.team != "Blue":
-                local_state.update_team(team="Blue", delay=0.0025)
+            if REDB.long_press:
+                if local_state.team != "Red":
+                    local_state.update_team("Red", delay=0.0025)
+                elif local_state.team == "Red":
+                    local_state.update_team("Green", delay=0.0025)
+            elif BLUEB.long_press:
+                if local_state.team != "Blue":
+                    local_state.update_team("Blue", delay=0.0025)
+                elif local_state.team == "Blue":
+                    local_state.update_team("Green", delay=0.0025)
             if monotonic() - clock >= 1:
                 if local_state.team == "Red":
                     local_state.red_time -= 1
