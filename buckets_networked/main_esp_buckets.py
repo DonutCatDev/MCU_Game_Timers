@@ -421,11 +421,9 @@ async def start_crazyking(game_mode):
             if local_state.cap_state:
                 if REDB.fell and local_state.team != "Red":
                     local_state.update_team("Red", delay=0.0025)
-                elif REDB.long_press and local_state.team == "Red":
-                    local_state.update_team("Green", delay=0.0025)
                 elif BLUEB.fell and local_state.team != "Blue":
                     local_state.update_team("Blue", delay=0.0025)
-                elif BLUEB.long_press and local_state.team == "Blue":
+                if BLUEB.long_press and REDB.long_press:
                     local_state.update_team("Green", delay=0.0025)
             if monotonic() - clock >= 1:
                 local_state.game_length -= 1
@@ -502,11 +500,9 @@ async def start_crazykingw(game_mode):
             if local_state.cap_state:
                 if REDB.fell and local_state.team != "Red":
                     local_state.update_team("Red", delay=0.0025)
-                elif REDB.long_press and local_state.team == "Red":
-                    local_state.update_team("Green", delay=0.0025)
                 elif BLUEB.fell and local_state.team != "Blue":
                     local_state.update_team("Blue", delay=0.0025)
-                elif BLUEB.long_press and local_state.team == "Blue":
+                if BLUEB.long_press and REDB.long_press:
                     local_state.update_team("Green", delay=0.0025)
             if monotonic() - clock >= 1:
                 if local_state.cap_state:
