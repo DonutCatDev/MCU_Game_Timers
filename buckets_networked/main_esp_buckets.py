@@ -620,7 +620,7 @@ async def start_domination(game_mode):
 
 
 async def start_dominationw(game_mode):
-    """Function for Domination game mode"""
+    """Function for Domination game mode, wireless version"""
     local_state = initial_state.shallow_copy()
     await sleep(0.5)
     message = b"empty"
@@ -705,7 +705,7 @@ async def start_dominationw(game_mode):
 
 
 async def start_kothw(game_mode):
-    """Function for Domination game mode"""
+    """Function for King of the Hill game mode, wireless version"""
     local_state = initial_state.shallow_copy()
     await sleep(0.5)
     message = b"empty"
@@ -876,6 +876,14 @@ async def start_territory(game_mode):
                     elif local_state.team == "Red":
                         local_state.update_team(team="Green", delay=0.0025)
                 hold_time = monotonic()
+                color = "Red" if not REDB.value else "Blue"
+                RGBS.update(
+                    color1=color,
+                    color2=local_state.team,
+                    pattern="solid_blink",
+                    delay=0.25,
+                    repeat=-1,
+                )
                 display_message(
                     f"{local_state.team} Team \n{local_state.game_length_str}"
                 )
@@ -892,6 +900,104 @@ async def start_territory(game_mode):
             display_message("exiting...")
             await sleep(0.5)
             break
+        await sleep(0)
+    display_message(f"{local_state.team} Team\nPoint Locked")
+    RGBS.update(color1=local_state.team, pattern="fill_cycle", repeat=-1)
+    while True:
+        if ENCB.short_count > 0:
+            break
+        await sleep(0)
+    await sleep(0.1)
+    await game_mode.restart()
+
+
+async def start_territoryw(game_mode):
+    """Function for Territories(b) game mode, wireless version"""
+    local_state = initial_state.shallow_copy()
+    await sleep(0.5)
+    message = b"empty"
+    msg_dec = message.decode()
+    display_message("Waiting for timer...")
+    RGBS.update(color1=local_state.team, pattern="single_blink_cycle", repeat=-1)
+    while True:
+        if e:
+            msg = e.read()
+            if msg.msg is not None and msg.msg != message:
+                message = msg.msg
+                msg_dec = message.decode()
+                if msg_dec == "Start":
+                    await sleep(6)
+                    break
+        if ENCB.short_count > 1:
+            break
+        await sleep(0)
+    display_message(f"{local_state.team} Team\n{local_state.game_length_str}")
+    local_state.update_team()
+    hold_time = 0
+    while True:
+        if local_state.timer_state:
+            if REDB.fell or BLUEB.fell:
+                hold_time = monotonic()
+                local_state.cap_state = True
+                color = "Red" if REDB.fell else "Blue"
+                RGBS.update(
+                    color1=color,
+                    color2=local_state.team,
+                    pattern="solid_blink",
+                    delay=0.25,
+                    repeat=-1,
+                )
+            if REDB.rose or BLUEB.rose:
+                local_state.cap_state = False
+                local_state.update_team(local_state.team)
+            if (
+                local_state.cap_state == True
+                and monotonic() - hold_time >= local_state.long_ms / 1000
+            ):
+                if not REDB.value:
+                    if local_state.team == "Green":
+                        local_state.update_team(team="Red", delay=0.0025)
+                    elif local_state.team == "Blue":
+                        local_state.update_team(team="Green", delay=0.0025)
+                elif not BLUEB.value:
+                    if local_state.team == "Green":
+                        local_state.update_team(team="Blue", delay=0.0025)
+                    elif local_state.team == "Red":
+                        local_state.update_team(team="Green", delay=0.0025)
+                hold_time = monotonic()
+                color = "Red" if not REDB.value else "Blue"
+                RGBS.update(
+                    color1=color,
+                    color2=local_state.team,
+                    pattern="solid_blink",
+                    delay=0.25,
+                    repeat=-1,
+                )
+                display_message(
+                    f"{local_state.team} Team \n{local_state.game_length_str}"
+                )
+        if ENCB.short_count > 1:
+            local_state.timer_state = not local_state.timer_state
+            await sleep(0.1)
+        if ENCB.long_press:
+            display_message("exiting...")
+            await sleep(0.5)
+            break
+        if e:
+            msg = e.read()
+            if msg is not None and msg != message:
+                print(msg.msg)
+                message = msg.msg
+                msg_dec = message.decode()
+                if msg_dec == "Pause":
+                    local_state.timer_state = False
+                    local_state.cap_state = False
+                    RGBS.update("Yellow", delay=0.0025)
+                elif msg_dec == "Resume":
+                    local_state.timer_state = True
+                    RGBS.update(local_state.team, delay=0.0025)
+                elif msg_dec == "End":
+                    break
         await sleep(0)
     display_message(f"{local_state.team} Team\nPoint Locked")
     RGBS.update(color1=local_state.team, pattern="fill_cycle", repeat=-1)
