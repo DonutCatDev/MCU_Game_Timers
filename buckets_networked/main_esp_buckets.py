@@ -898,7 +898,7 @@ class GameMode:
         name,
         has_lives=False,
         has_id=False,
-        has_team=False,s
+        has_team=False,
         has_game_length=False,
         has_cap_length=False,
         has_checkpoint=False,
