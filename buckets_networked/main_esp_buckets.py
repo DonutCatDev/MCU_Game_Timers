@@ -39,7 +39,7 @@ BUCKET_IDS = ["A", "B", "C", "D", "E", "F"]
 EXTRAS = [
     "You're a nerd",
     "Weiners",
-    "Ooh, a piece of candy",
+    "Ooh, a piece of \ncandy",
     "Oatmeal",
     "Poggers in the \nchat",
     "Anything is a \nhammer once",
@@ -49,6 +49,13 @@ EXTRAS = [
     "Amongus",
     "Dino nuggies",
     "Bumper cars",
+    "Not FDA approved",
+    "You lost \nthe game",
+    "Life is Roblox",
+    "Trans rights \nare human rights",
+    "I love gambling",
+    "Fancy pigeons",
+    "Always bring \nspare underwear",
 ]
 # endregion
 """
