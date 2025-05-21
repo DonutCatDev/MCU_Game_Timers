@@ -1,6 +1,6 @@
 """
 MXU Game Timers by donutcat
-Primary file, last updated 2025-04-30
+Primary file, last updated 2025-05-21
 """
 
 """
@@ -871,7 +871,7 @@ async def start_lockout(game_mode):
 
 
 async def start_territory(game_mode):
-    """Function for Territories(b) game mode"""
+    """Function for Territory game mode"""
     local_state = initial_state.shallow_copy()
     await sleep(0.5)
     display_message(f"{local_state.team} Team\n{local_state.game_length_str}")
@@ -888,7 +888,7 @@ async def start_territory(game_mode):
                     color1=color,
                     color2=local_state.team,
                     pattern="solid_blink",
-                    delay=0.1,
+                    delay=0.25,
                     repeat=-1,
                 )
             if REDB.rose or BLUEB.rose:
@@ -945,7 +945,7 @@ async def start_territory(game_mode):
 
 
 async def start_territoryw(game_mode):
-    """Function for Territories(b) game mode, wireless version"""
+    """Function for Territory game mode, wireless version"""
     local_state = initial_state.shallow_copy()
     await sleep(0.5)
     message = b"empty"
@@ -1034,6 +1034,90 @@ async def start_territoryw(game_mode):
         await sleep(0)
     display_message(f"{local_state.team} Team\nPoint Locked")
     RGBS.update(color1=local_state.team, pattern="fill_cycle", repeat=-1)
+    while True:
+        if ENCB.short_count > 0:
+            break
+        await sleep(0)
+    await sleep(0.1)
+    await game_mode.restart()
+
+
+async def start_hotpockets(game_mode):
+    """Function for HotPocket game mode"""
+    local_state = initial_state.shallow_copy()
+    await sleep(0.5)
+    display_message(f"Countdown\n{local_state.game_length_str}")
+    clock = monotonic()
+    hold_time = 0
+    RGBS.update(
+        color1="Green",
+        color2="Purple",
+        pattern="solid_blink",
+        delay=0.5,
+        repeat=-1,
+    )
+    await sleep(0.5)
+    while local_state.game_length > 0:
+        if monotonic() - clock >= 1:
+            local_state.game_length -= 1
+            display_message(f"Countdown\n{local_state.game_length_str}")
+            clock = monotonic()
+        await sleep(0)
+    display_message(f"HotPockets\nHill neutral")
+    local_state.update_team()
+    while True:
+        if local_state.timer_state:
+            if REDB.fell or BLUEB.fell:
+                hold_time = monotonic()
+                local_state.cap_state = True
+                color = "Red" if REDB.fell else "Blue"
+                RGBS.update(
+                    color1=color,
+                    color2=local_state.team,
+                    pattern="solid_blink",
+                    delay=0.25,
+                    repeat=-1,
+                )
+            if REDB.rose or BLUEB.rose:
+                local_state.cap_state = False
+                local_state.update_team(local_state.team)
+            if (
+                local_state.cap_state == True
+                and monotonic() - hold_time >= local_state.long_ms / 1000
+            ):
+                if not REDB.value:
+                    if local_state.team == "Green":
+                        local_state.update_team(team="Red", delay=0.0025)
+                    elif local_state.team == "Blue":
+                        local_state.update_team(team="Green", delay=0.0025)
+                elif not BLUEB.value:
+                    if local_state.team == "Green":
+                        local_state.update_team(team="Blue", delay=0.0025)
+                    elif local_state.team == "Red":
+                        local_state.update_team(team="Green", delay=0.0025)
+                hold_time = monotonic()
+                color = "Red" if not REDB.value else "Blue"
+                RGBS.update(
+                    color1=color,
+                    color2=local_state.team,
+                    pattern="solid_blink",
+                    delay=0.25,
+                    repeat=-1,
+                )
+                display_message(f"{local_state.team} Team \nCAPTURED")
+                break
+        if ENCB.short_count > 1:
+            local_state.timer_state = not local_state.timer_state
+            await sleep(0.1)
+        if ENCB.long_press:
+            display_message("exiting...")
+            await sleep(0.5)
+            break
+        await sleep(0)
+    display_message(f"{local_state.team} Team \nCAPTURED")
+    RGBS.update(
+        color1="Green", color2=local_state.team, pattern="fill_cycle", repeat=-1
+    )
     while True:
         if ENCB.short_count > 0:
             break
@@ -1342,6 +1426,7 @@ MODES = [
     GameMode("Lockout", has_game_length=True),
     GameMode("Territory", has_game_length=True, has_long_press=True),
     GameMode("Territory W", has_timerbox=True, has_long_press=True),
+    GameMode("HotPockets", has_game_length=True, has_long_press=True),
 ]
 # endregion
 """
