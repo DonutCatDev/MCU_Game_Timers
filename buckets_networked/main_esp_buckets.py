@@ -1,6 +1,6 @@
 """
 MXU Game Timers by donutcat
-Primary file, last updated 2025-05-21
+Primary file, last updated 2025-09-18
 """
 
 """
@@ -1133,6 +1133,56 @@ async def start_hotpockets(game_mode):
     await game_mode.restart()
 
 
+async def start_rangoon(game_mode):
+    """Function for Rangoon/BTA game mode"""
+    local_state = initial_state.shallow_copy()
+    await sleep(0.5)
+    display_message(
+        f"RED:  {local_state.red_time_str}\nBLUE: {local_state.blue_time_str}"
+    )
+    local_state.update_team()
+    clock = monotonic()
+    while not ENCB.long_press:
+        if REDB.rose or BLUEB.rose:
+            local_state.update_team(team="Green", delay=0.0025)
+        if REDB.fell or BLUEB.fell:
+            if not REDB.value:
+                local_state.update_team(team="Red", delay=0.0025)
+            elif not BLUEB.value:
+                local_state.update_team(team="Blue", delay=0.0025)
+        if monotonic() - clock >= 1:
+            if local_state.team == "Red":
+                local_state.red_time += 1
+            elif local_state.team == "Blue":
+                local_state.blue_time += 1
+            display_message(
+                f"RED:  {local_state.red_time_str}\nBLUE: {local_state.blue_time_str}"
+            )
+            clock = monotonic()
+        await sleep(0)
+    display_message(
+        f"RED:  {local_state.red_time_str}\nBLUE: {local_state.blue_time_str}"
+    )
+    if local_state.red_time > local_state.blue_time:
+        local_state.update_team(
+            team="Red", color2="Green", pattern="fill_cycle", delay=0.0025, repeat=-1
+        )
+    elif local_state.blue_time > local_state.red_time:
+        local_state.update_team(
+            team="Blue", color2="Green", pattern="fill_cycle", delay=0.0025, repeat=-1
+        )
+    else:
+        local_state.update_team(
+            team="Purple", color2="Green", pattern="fill_cycle", delay=0.0025, repeat=-1
+        )
+    while True:
+        if ENCB.short_count > 0:
+            break
+        await sleep(0)
+    await sleep(0.1)
+    await game_mode.restart()
+
+
 # endregion
 """
 GameMode class and instantiation
@@ -1168,6 +1218,7 @@ class GameMode:
 
     def set_message(self):
         self.display_messages = {
+            0: f"{self.name}\nReady",
             1: f"{self.name} Ready\nTeam lives {initial_state.lives_count}",
             2: f"{self.name}\nReady {initial_state.game_length_str}",
             3: f"{self.name} Ready\n{initial_state.team} {initial_state.game_length_str} {initial_state.cap_length_str}",
@@ -1176,7 +1227,7 @@ class GameMode:
             6: f"{self.name}\nReady w TimerBox",
             7: f"{self.name}\nReady {initial_state.game_length_str} {int(initial_state.long_ms/1000)}s",
         }
-        message = 2
+        message = 0
         if self.has_lives:
             message = 1
         elif self.has_id:
@@ -1434,6 +1485,7 @@ MODES = [
     GameMode("Territory", has_game_length=True, has_long_press=True),
     GameMode("Territory W", has_timerbox=True, has_long_press=True),
     GameMode("HotPockets", has_game_length=True, has_long_press=True),
+    GameMode("Rangoon"),
 ]
 # endregion
 """
