@@ -1,6 +1,6 @@
 """
 MXU Game Timers by donutcat
-Primary file, last updated 2025-09-18
+Primary file, last updated 2025-09-19
 """
 
 """
@@ -1142,23 +1142,31 @@ async def start_rangoon(game_mode):
     )
     local_state.update_team()
     clock = monotonic()
-    while not ENCB.long_press:
-        if REDB.rose or BLUEB.rose:
-            local_state.update_team(team="Green", delay=0.0025)
-        if REDB.fell or BLUEB.fell:
-            if not REDB.value:
-                local_state.update_team(team="Red", delay=0.0025)
-            elif not BLUEB.value:
-                local_state.update_team(team="Blue", delay=0.0025)
-        if monotonic() - clock >= 1:
-            if local_state.team == "Red":
-                local_state.red_time += 1
-            elif local_state.team == "Blue":
-                local_state.blue_time += 1
-            display_message(
-                f"RED:  {local_state.red_time_str}\nBLUE: {local_state.blue_time_str}"
-            )
-            clock = monotonic()
+    while local_state.game_length > 0:
+        if local_state.timer_state:
+            if REDB.rose or BLUEB.rose:
+                local_state.update_team(team="Green", delay=0.0025)
+            if REDB.fell or BLUEB.fell:
+                if not REDB.value:
+                    local_state.update_team(team="Red", delay=0.0025)
+                elif not BLUEB.value:
+                    local_state.update_team(team="Blue", delay=0.0025)
+            if monotonic() - clock >= 1:
+                local_state.game_length -= 1
+                if local_state.team == "Red":
+                    local_state.red_time += 1
+                elif local_state.team == "Blue":
+                    local_state.blue_time += 1
+                display_message(
+                    f"RED:  {local_state.red_time_str}\nBLUE: {local_state.blue_time_str}"
+                )
+                clock = monotonic()
+        if ENCB.short_count > 1:
+            local_state.timer_state = not local_state.timer_state
+        if ENCB.long_press:
+            display_message("exiting...")
+            await sleep(0.5)
+            break
         await sleep(0)
     display_message(
         f"RED:  {local_state.red_time_str}\nBLUE: {local_state.blue_time_str}"
@@ -1485,7 +1493,7 @@ MODES = [
     GameMode("Territory", has_game_length=True, has_long_press=True),
     GameMode("Territory W", has_timerbox=True, has_long_press=True),
     GameMode("HotPockets", has_game_length=True, has_long_press=True),
-    GameMode("Rangoon"),
+    GameMode("Rangoon", has_game_length=True),
 ]
 # endregion
 """
