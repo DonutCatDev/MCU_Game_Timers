@@ -23,20 +23,19 @@ class DisplayWrapper:
         rows=2,
         cols=16,
     ):
-        self.i2c = I2C(scl_pin, sda_pin)
+        self.i2c = I2C(scl_pin, sda_pin, frequency=400000)
         self.display = None
         self.lcd_addresses = lcd_addresses
         self.dimensions = (cols, rows)
         self.init_lcd()
 
     def init_lcd(self):
-        while self.i2c.try_lock() is False:
+        while not self.i2c.try_lock():
             pass
         addresses = self.i2c.scan()
-        if self.lcd_addresses[0] in addresses:
-            address = self.lcd_addresses[0]
-        elif self.lcd_addresses[1] in addresses:
-            address = self.lcd_addresses[1]
+        for addr in self.lcd_addresses:
+            if addr in addresses:
+                address = addr
         try:
             self.display = I2cLcd(self.i2c, address, self.dimensions)
         except Exception:
