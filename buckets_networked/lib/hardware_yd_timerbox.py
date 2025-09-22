@@ -30,14 +30,18 @@ class DisplayWrapper:
         self.init_lcd()
 
     def init_lcd(self):
-        while self.i2c.try_lock():
-            for addr in self.lcd_addresses:
-                try:
-                    self.display = I2cLcd(self.i2c, addr, self.dimensions)
-                except Exception:
-                    continue
-                else:
-                    return
+        while self.i2c.try_lock() is False:
+            pass
+        addresses = self.i2c.scan()
+        if self.lcd_addresses[0] in addresses:
+            address = self.lcd_addresses[0]
+        elif self.lcd_addresses[1] in addresses:
+            address = self.lcd_addresses[1]
+        try:
+            self.display = I2cLcd(self.i2c, address, self.dimensions)
+        except Exception:
+            print("Failed to initialize LCD")
+            self.display = None
 
     def write(self, text):
         if self.display is not None:
