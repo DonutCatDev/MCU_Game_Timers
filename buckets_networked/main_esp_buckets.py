@@ -1,6 +1,6 @@
 """
-MXU Game Timers by donutcat
-Primary file, last updated 2025-09-19
+MCU Game Timers by donutcat
+Primary file, last updated 2025-09-24
 """
 
 """
@@ -366,6 +366,7 @@ async def start_control(game_mode):
     )
     RGBS.update(color1="Green")
     clock = monotonic()
+    await sleep(0)
     while (local_state.game_length > 0 and not local_state.cap_state) or (
         local_state.cap_length > 0 and local_state.cap_state
     ):
@@ -418,6 +419,7 @@ async def start_crazyking(game_mode):
         f"RED:  {local_state.red_time_str}\nBLUE: {local_state.blue_time_str}"
     )
     clock = monotonic()
+    await sleep(0)
     while local_state.game_length > 0:
         if local_state.timer_state:
             if local_state.game_length in range(
@@ -504,6 +506,7 @@ async def start_crazykingw(game_mode):
     display_message(
         f"RED:  {local_state.red_time_str}\nBLUE: {local_state.blue_time_str}"
     )
+    await sleep(0)
     local_state.update_team()
     clock = monotonic()
     await sleep(0)
@@ -587,8 +590,10 @@ async def start_domination(game_mode):
     display_message(
         f"RED:  {local_state.red_time_str}\nBLUE: {local_state.blue_time_str}"
     )
+    await sleep(0)
     local_state.update_team()
     clock = monotonic()
+    await sleep(0)
     while local_state.game_length > 0:
         if local_state.timer_state:
             if REDB.long_press:
@@ -664,6 +669,7 @@ async def start_dominationw(game_mode):
     display_message(
         f"RED:  {local_state.red_time_str}\nBLUE: {local_state.blue_time_str}"
     )
+    await sleep(0)
     local_state.update_team()
     clock = monotonic()
     await sleep(0)
@@ -833,8 +839,10 @@ async def start_lockout(game_mode):
     display_message(
         f"RED:  {local_state.red_time_str}\nBLUE: {local_state.blue_time_str}"
     )
+    await sleep(0)
     local_state.update_team()
     clock = monotonic()
+    await sleep(0)
     while local_state.red_time > 0 and local_state.blue_time > 0:
         if local_state.timer_state:
             if REDB.long_press:
@@ -881,10 +889,12 @@ async def start_territory(game_mode):
     """Function for Territory game mode"""
     local_state = initial_state.shallow_copy()
     await sleep(0.5)
+    hold_time = 0
     display_message(f"{local_state.team} Team\n{local_state.game_length_str}")
+    await sleep(0)
     local_state.update_team()
     clock = monotonic()
-    hold_time = 0
+    await sleep(0)
     while local_state.game_length > 0:
         if local_state.timer_state:
             if REDB.fell or BLUEB.fell:
@@ -955,6 +965,7 @@ async def start_territoryw(game_mode):
     """Function for Territory game mode, wireless version"""
     local_state = initial_state.shallow_copy()
     await sleep(0.5)
+    hold_time = 0
     message = b"empty"
     msg_dec = message.decode()
     display_message("Waiting for timer...")
@@ -972,8 +983,10 @@ async def start_territoryw(game_mode):
             break
         await sleep(0)
     display_message(f"{local_state.team} Team\n{local_state.game_length_str}")
+    await sleep(0)
     local_state.update_team()
-    hold_time = 0
+    clock = monotonic()
+    await sleep(0)
     while True:
         if local_state.timer_state:
             if REDB.fell or BLUEB.fell:
@@ -1053,9 +1066,9 @@ async def start_hotpockets(game_mode):
     """Function for HotPocket game mode"""
     local_state = initial_state.shallow_copy()
     await sleep(0.5)
+    hold_time = 0
     display_message(f"Countdown\n{local_state.game_length_str}")
     clock = monotonic()
-    hold_time = 0
     RGBS.update(
         color1="Green",
         color2="Purple",
@@ -1072,6 +1085,7 @@ async def start_hotpockets(game_mode):
         await sleep(0)
     display_message(f"HotPockets\nHill neutral")
     local_state.update_team()
+    await sleep(0)
     while True:
         if local_state.timer_state:
             if REDB.fell or BLUEB.fell:
@@ -1140,8 +1154,10 @@ async def start_rangoon(game_mode):
     display_message(
         f"RED:  {local_state.red_time_str}\nBLUE: {local_state.blue_time_str}"
     )
+    await sleep(0)
     local_state.update_team()
     clock = monotonic()
+    await sleep(0)
     while local_state.game_length > 0:
         if local_state.timer_state:
             if REDB.rose or BLUEB.rose:
