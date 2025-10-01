@@ -1,6 +1,6 @@
 """
 MCU Game Timers by donutcat
-Primary file, last updated 2025-09-24
+Primary file, last updated 2025-10-01
 """
 
 """
@@ -492,8 +492,8 @@ async def start_crazykingw(game_mode):
     display_message("Waiting for timer...")
     RGBS.update(color1=local_state.team, pattern="single_blink_cycle", repeat=-1)
     while True:
-        if e:
-            msg = e.read()
+        if ESP:
+            msg = ESP.read()
             if msg.msg is not None and msg.msg != message:
                 message = msg.msg
                 msg_dec = message.decode()
@@ -535,8 +535,8 @@ async def start_crazykingw(game_mode):
             display_message("exiting...")
             await sleep(0.5)
             break
-        if e:
-            msg = e.read()
+        if ESP:
+            msg = ESP.read()
             if msg is not None and msg != message:
                 print(msg.msg)
                 message = msg.msg
@@ -655,8 +655,8 @@ async def start_dominationw(game_mode):
     display_message("Waiting for timer...")
     RGBS.update(color1=local_state.team, pattern="single_blink_cycle", repeat=-1)
     while True:
-        if e:
-            msg = e.read()
+        if ESP:
+            msg = ESP.read()
             if msg.msg is not None and msg.msg != message:
                 message = msg.msg
                 msg_dec = message.decode()
@@ -700,8 +700,8 @@ async def start_dominationw(game_mode):
             display_message("exiting...")
             await sleep(0.5)
             break
-        if e:
-            msg = e.read()
+        if ESP:
+            msg = ESP.read()
             if msg is not None and msg != message:
                 print(msg.msg)
                 message = msg.msg
@@ -747,8 +747,8 @@ async def start_kothw(game_mode):
     display_message("Waiting for timer...")
     RGBS.update(color1=local_state.team, pattern="single_blink_cycle", repeat=-1)
     while True:
-        if e:
-            msg = e.read()
+        if ESP:
+            msg = ESP.read()
             if msg.msg is not None and msg.msg != message:
                 message = msg.msg
                 msg_dec = message.decode()
@@ -792,8 +792,8 @@ async def start_kothw(game_mode):
             display_message("exiting...")
             await sleep(0.5)
             break
-        if e:
-            msg = e.read()
+        if ESP:
+            msg = ESP.read()
             if msg is not None and msg != message:
                 print(msg.msg)
                 message = msg.msg
@@ -971,8 +971,8 @@ async def start_territoryw(game_mode):
     display_message("Waiting for timer...")
     RGBS.update(color1=local_state.team, pattern="single_blink_cycle", repeat=-1)
     while True:
-        if e:
-            msg = e.read()
+        if ESP:
+            msg = ESP.read()
             if msg.msg is not None and msg.msg != message:
                 message = msg.msg
                 msg_dec = message.decode()
@@ -1036,8 +1036,8 @@ async def start_territoryw(game_mode):
             display_message("exiting...")
             await sleep(0.5)
             break
-        if e:
-            msg = e.read()
+        if ESP:
+            msg = ESP.read()
             if msg is not None and msg != message:
                 print(msg.msg)
                 message = msg.msg
@@ -1440,7 +1440,7 @@ class GameMode:
             while True:
                 if ENCB.short_count > 0:
                     break
-                e.read()
+                ESP.read()
                 await sleep(0)
             display_message(f"{self.name}\nStarting...")
             await sleep(0)
@@ -1458,7 +1458,6 @@ class GameMode:
         RGBS.update()
         display_message(f"Restart?:\n{RESTART_OPTIONS[initial_state.restart_index]}")
         await sleep(0.5)
-
         while True:
             if ENCS._was_rotated.is_set():
                 initial_state.restart_index = ENCS.encoder_handler(
@@ -1517,7 +1516,7 @@ ESP-NOW setup
 """
 # region
 
-e = espnow.ESPNow()
+ESP = espnow.ESPNow()
 
 # endregion
 """
