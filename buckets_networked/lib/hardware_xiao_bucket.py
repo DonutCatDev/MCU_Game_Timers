@@ -31,14 +31,17 @@ class DisplayWrapper:
         self.init_lcd()
 
     def init_lcd(self):
-        while self.i2c.try_lock():
-            for addr in self.lcd_addresses:
-                try:
-                    self.display = I2cLcd(self.i2c, addr, self.dimensions)
-                except Exception:
-                    continue
-                else:
-                    return
+        while not self.i2c.try_lock():
+            pass
+        addresses = self.i2c.scan()
+        for addr in self.lcd_addresses:
+            if addr in addresses:
+                address = addr
+        try:
+            self.display = I2cLcd(self.i2c, address, self.dimensions)
+        except Exception:
+            print("Failed to initialize LCD")
+            self.display = None
 
     def write(self, text):
         if self.display is not None:

@@ -1,6 +1,8 @@
 """
 Hardware declarations for the timer project.
 Used to easily change pin connections without changing the primary code.
+This file is for an older devboard retrofit.
+Last updated 2025-10-01
 """
 import board
 from busio import I2C, UART
@@ -28,17 +30,17 @@ class DisplayWrapper:
         self.init_lcd()
 
     def init_lcd(self):
-        while self.i2c.try_lock():
-            for addr in self.lcd_addresses:
-                try:
-                    print("trying", addr)
-                    self.display = I2cLcd(self.i2c, addr, self.dimensions)
-                except Exception:
-                    print("failed", addr)
-                    continue
-                else:
-                    print("success", addr)
-                    return
+        while not self.i2c.try_lock():
+            pass
+        addresses = self.i2c.scan()
+        for addr in self.lcd_addresses:
+            if addr in addresses:
+                address = addr
+        try:
+            self.display = I2cLcd(self.i2c, address, self.dimensions)
+        except Exception:
+            print("Failed to initialize LCD")
+            self.display = None
 
     def write(self, text):
         if self.display is not None:
