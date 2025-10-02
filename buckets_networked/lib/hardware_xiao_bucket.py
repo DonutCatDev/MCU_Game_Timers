@@ -3,6 +3,7 @@
 Hardware declarations for the timer project.
 Used to easily change pin connections without changing the primary code.
 This file is for the Bucket components.
+Last updated 2025-10-01
 """
 import board
 from busio import I2C  # , UART
@@ -68,7 +69,7 @@ except Exception:
 
 
 # Initialize RGB and inputs
-iopins = (
+"""iopins = (
     board.IO43,  # RGB data pin
     board.IO9,  # Encoder pin 1
     board.IO8,  # Encoder pin 2
@@ -77,6 +78,17 @@ iopins = (
     board.IO3,  # Blue button
     board.IO2,  # Red LED
     board.IO4,  # Blue LED
+)
+"""
+iopins = (
+    board.D6,  # RGB data pin
+    board.D10,  # Encoder pin 1
+    board.D9,  # Encoder pin 2
+    board.D8,  # Encoder button
+    board.D0,  # Red button
+    board.D2,  # Blue button
+    board.D1,  # Red LED
+    board.D3,  # Blue LED
 )
 
 
