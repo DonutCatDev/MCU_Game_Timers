@@ -1,6 +1,6 @@
 """
 MCU Game Timers by donutcat
-Primary file, last updated 2025-10-01
+Primary file, last updated 2025-10-02
 """
 
 """
@@ -815,6 +815,8 @@ async def start_hothw(game_mode):
             display_message("exiting...")
             await sleep(0.5)
             break
+        if local_state.esp_read() == "End":
+            break
         await sleep(0)
     display_message(
         f"RED:  {local_state.red_time_str}\nBLUE: {local_state.blue_time_str}"
@@ -1501,7 +1503,7 @@ MODES = [
     GameMode("Domination", has_game_length=True),
     GameMode("Domination W", has_timerbox=True),
     GameMode("HOTH", has_game_length=True),
-    GameMode("HOTHW", has_timerbox=True),
+    GameMode("HOTH W", has_timerbox=True),
     GameMode("Lockout", has_game_length=True),
     GameMode("Territory", has_game_length=True, has_long_press=True),
     GameMode("Territory W", has_timerbox=True, has_long_press=True),
