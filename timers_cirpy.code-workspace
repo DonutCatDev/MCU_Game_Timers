@@ -8,6 +8,9 @@
 		},
 		{
 			"path": "E:/"
+		},
+		{
+			"path": "../game_timer_refs"
 		}
 	],
 	"settings": {
