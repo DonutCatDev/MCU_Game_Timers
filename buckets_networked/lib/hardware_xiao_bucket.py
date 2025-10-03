@@ -62,35 +62,41 @@ except Exception:
 
 # I2C display creation
 try:
-    DISPLAY = DisplayWrapper(board.IO5, board.IO6, rows=2, cols=16)
+    DISPLAY = DisplayWrapper(board.D4, board.D5, rows=2, cols=16)
 except Exception:
-    print("DISPLAY failed")
-    pass
+    print("DISPLAY failed with D4/D5, trying IO5/IO6...")
+    try:
+        DISPLAY = DisplayWrapper(board.IO5, board.IO6, rows=2, cols=16)
+    except Exception:
+        print("DISPLAY failed with IO5/IO6")
+        DISPLAY = None
 
 
 # Initialize RGB and inputs
-iopins = (
-    board.IO43,  # RGB data pin
-    board.IO9,  # Encoder pin 1
-    board.IO8,  # Encoder pin 2
-    board.IO7,  # Encoder button
-    board.IO1,  # Red button
-    board.IO3,  # Blue button
-    board.IO2,  # Red LED
-    board.IO4,  # Blue LED
-)
-"""
-iopins = (
-    board.D6,  # RGB data pin
-    board.D10,  # Encoder pin 1
-    board.D9,  # Encoder pin 2
-    board.D8,  # Encoder button
-    board.D0,  # Red button
-    board.D2,  # Blue button
-    board.D1,  # Red LED
-    board.D3,  # Blue LED
-)
-"""
+try:
+    iopins = (
+        board.D6,  # RGB data pin
+        board.D10,  # Encoder pin 1
+        board.D9,  # Encoder pin 2
+        board.D8,  # Encoder button
+        board.D0,  # Red button
+        board.D2,  # Blue button
+        board.D1,  # Red LED
+        board.D3,  # Blue LED
+    )
+except Exception:
+    print("D pins failed, trying IO pins...")
+    iopins = (
+        board.IO43,  # RGB data pin
+        board.IO9,  # Encoder pin 1
+        board.IO8,  # Encoder pin 2
+        board.IO7,  # Encoder button
+        board.IO1,  # Red button
+        board.IO3,  # Blue button
+        board.IO2,  # Red LED
+        board.IO4,  # Blue LED
+    )
+
 
 # RGB strip setup
 led_count = 58
